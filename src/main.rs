@@ -1,3 +1,5 @@
+use std::env;
+use std::fs;
 use std::process::Command;
 
 // NOTE: DO NOT RUN THIS WITH shell.nix, just use regular 'cargo run'
@@ -9,7 +11,12 @@ use std::process::Command;
 
 fn main() {
 
-    // read '/home/user/.config/flatpak-declare/config' to string
+    let username = env::var("USER").expect("failed to get username");
+    let config_path = format!("/home/{}/.config/flatpak-declare/config", &username);
+    let config_contents = fs::read_to_string(&config_path).expect("could not read contents of config file");
+
+    println!("In file {}", &config_path);
+    println!("With text:\n{config_contents}");
 
     let apps = Command::new("flatpak")
         .arg("list")
