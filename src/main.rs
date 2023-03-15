@@ -69,8 +69,14 @@ fn main() {
 //     }
 // }
 
-// function add apps
-    // if applications vector does not contain struct with given id AND remote, install the given app for the given remote
+fn install_apps(){
+    // for every struct in the app vec
+        // if given remote and id is NOT present on system (hint: use 'flatpak list')
+            // add id to list under associated remote
+
+    // iterate through remotes
+        // run 'flatpak --system install flathub org.qutebrowser.qutebrowser'
+}
 
 // function remove apps
     // if applications vector contains struct with given id AND remote, remove the app with the given id AND remote
