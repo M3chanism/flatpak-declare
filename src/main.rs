@@ -1,13 +1,15 @@
 use std::env;
 use std::fs;
-use std::process::Command;
+//use std::process::Command;
 
 // NOTE: DO NOT RUN THIS WITH shell.nix, just use regular 'cargo run'
 
-// array: pkg_add:
-// array: pkg_remove:
-// array: remote_add:
-// array: remote_remove:
+#[derive(Debug)]
+struct Application {
+    installation: String,
+    remote: String,
+    id: String,
+}
 
 fn main() {
 
@@ -15,39 +17,51 @@ fn main() {
     let config_path = format!("/home/{}/.config/flatpak-declare/config", &username);
     let config_contents = fs::read_to_string(&config_path).expect("could not read contents of config file");
 
-    println!("In file {}", &config_path);
-    println!("With text:\n{config_contents}");
+    let lines: Vec<&str> = config_contents.split(',').collect();
+    let mut apps = Vec::new();
 
-    let apps = Command::new("flatpak")
-        .arg("list")
-        .arg("--app")
-        .arg("--columns=application")
-        .output()
-        .expect("failed to execute process");
+    for line in lines {
+        // println!("{}", i);
+        let item = parse_line(line);
+        apps.push(item);
+    }
 
-    println!("{}", String::from_utf8_lossy(&apps.stdout));
+    for apps in apps {
+        println!("field1: {}, field2: {}, field3: {}", apps.installation, apps.remote, apps.id);
+    }
 
-    let remotes = Command::new("flatpak")
-        .arg("remotes")
-        .arg("--columns=name")
-        .output()
-        .expect("failed to execute process");
 
-    println!("{}", String::from_utf8_lossy(&remotes.stdout));
+    // println!("In file {}", &config_path);
+    // println!("With text:\n{config_contents}");
+
+    // let apps = Command::new("flatpak")
+    //     .arg("list")
+    //     .arg("--app")
+    //     .arg("--columns=application")
+    //     .output()
+    //     .expect("failed to execute process");
+    // println!("{}", String::from_utf8_lossy(&apps.stdout));
+
+    // let remotes = Command::new("flatpak")
+    //     .arg("remotes")
+    //     .arg("--columns=name")
+    //     .output()
+    //     .expect("failed to execute process");
+    // println!("{}", String::from_utf8_lossy(&remotes.stdout));
 }
 
-// check package for remote
+fn parse_line(input: &str) -> Application {
+    let fields: Vec<&str> = input.split("::").collect();
+    Application {
+        //BUG: index out of bounds, line is not being separated by ::
+        installation: fields[0].to_string(),
+        remote: fields[1].to_string(),
+        id: fields[2].to_string(),
+    }
+}
 
-// function: flatpak execute
-    // if app is listed in pkg_add, install the app.
-    // if app is listed in pkg_remove, remove the app.
-    // if remote is listed in remote_add, add the remote
-    // if remote is listed in remote_remove, remove the remote
+// function add apps
+    // if applications vector does not contain struct with given id AND remote, install the given app for the given remote
 
-// function: app parser
-    // if app is on 'flatpak list --app --columns=application' but not in the config file, add to pkg_remove
-    // if app is in the config file but not on 'flatpak list --app --columns=application', add to pkg_add
-
-// function: remote parser
-    // if app is on 'flatpak remotes' but not in the config file, add to pkg_remove
-    // if app is in the config file but not on 'flatpak remotes', add to pkg_add
+// function remove apps
+    // if applications vector contains struct with given id AND remote, remove the app with the given id AND remote
