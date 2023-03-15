@@ -16,18 +16,26 @@ fn main() {
     let username = env::var("USER").expect("failed to get username");
     let config_path = format!("/home/{}/.config/flatpak-declare/config", &username);
     let config_contents = fs::read_to_string(&config_path).expect("could not read contents of config file");
-
     let lines: Vec<&str> = config_contents.split(',').collect();
-    let mut apps = Vec::new();
+    let mut apps: Vec<Application> = Vec::new();
 
     for line in lines {
-        // println!("{}", i);
-        let item = parse_line(line);
-        apps.push(item);
+        // push_fields(line, apps);
+        let fields: Vec<&str> = line.split("::").collect();
+        if fields.len() >= 3 {
+            apps.push(Application {
+                installation: fields[0].to_string(),
+                remote: fields[1].to_string(),
+                id: fields[2].to_string(),
+            })
+        }
+        // else {
+        //     println!("Error: line does not contain enough fields");
+        // }
     }
 
     for apps in apps {
-        println!("field1: {}, field2: {}, field3: {}", apps.installation, apps.remote, apps.id);
+        println!("install: {}, remote: {}, id: {}\n", apps.installation, apps.remote, apps.id);
     }
 
 
@@ -50,15 +58,16 @@ fn main() {
     // println!("{}", String::from_utf8_lossy(&remotes.stdout));
 }
 
-fn parse_line(input: &str) -> Application {
-    let fields: Vec<&str> = input.split("::").collect();
-    Application {
-        //BUG: index out of bounds, line is not being separated by ::
-        installation: fields[0].to_string(),
-        remote: fields[1].to_string(),
-        id: fields[2].to_string(),
-    }
-}
+// fn push_fields(line: &str, mut apps: Vec<Application>) {
+//     let fields: Vec<&str> = line.split("::").collect();
+//     if fields.len() >= 3 {
+//         apps.push(Application {
+//             installation: fields[0].to_string(),
+//             remote: fields[1].to_string(),
+//             id: fields[2].to_string(),
+//         })
+//     }
+// }
 
 // function add apps
     // if applications vector does not contain struct with given id AND remote, install the given app for the given remote
