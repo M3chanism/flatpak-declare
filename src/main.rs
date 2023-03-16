@@ -21,12 +21,7 @@ struct Remote {
 
 fn main() {
 
-    // TODO: Move config entry retrieval into 'retrieve_config_entries' function
-    let username = env::var("USER").expect("failed to get username");
-    let config_path = format!("/home/{}/.config/flatpak-declare/config", &username);
-    let config_contents = fs::read_to_string(&config_path).expect("could not read contents of config file");
-    let config_entries: Vec<&str> = config_contents.split(',').collect();
-
+    let config_entries: Vec<String> = retrieve_config_entries();
     let list_config: Vec<Application> = genlist_config(&config_entries);
     let list_system: Vec<Application> = genlist_system();
     let list_install: Vec<Application> = genlist_install(&list_system, &list_config);
@@ -35,10 +30,10 @@ fn main() {
     install_apps(&list_install);
     remove_apps(&list_remove);
 
-    // println!("*** list_config ***");
-    // for apps in list_config {
-    //     println!("install: {}, remote: {}, appid: {}\n", apps.installation, apps.remote, apps.appid);
-    // }
+    println!("*** list_config ***");
+    for apps in list_config {
+        println!("install: {}, remote: {}, appid: {}\n", apps.installation, apps.remote, apps.appid);
+    }
     println!("*** list_system ***");
     for apps in list_system {
         println!("install: {}, remote: {}, appid: {}\n", apps.installation, apps.remote, apps.appid);
@@ -55,7 +50,18 @@ fn main() {
     // println!("{}", String::from_utf8_lossy(&remotes.stdout));
 }
 
-fn genlist_config(config_entries: &Vec<&str>) -> Vec<Application> {
+fn retrieve_config_entries() -> Vec<String> {
+    let username = env::var("USER").expect("failed to get username");
+    let config_path = format!("/home/{}/.config/flatpak-declare/config", &username);
+    let config_contents = fs::read_to_string(&config_path).expect("could not read contents of config file");
+    let config_entries: Vec<String> = config_contents
+        .split(',')
+        .map(|entry| entry.into()) // transform each &str element in the iterator produced by config_contents.split(',') into a String. This avoids referencing the local variable 'config_contents' since it will be dropped when function scope ends.
+        .collect();
+    config_entries
+}
+
+fn genlist_config(config_entries: &Vec<String>) -> Vec<Application> {
     let mut list_config = Vec::new();
     for line in config_entries {
         let fields: Vec<&str> = line.split("::").collect();
@@ -74,29 +80,36 @@ fn genlist_config(config_entries: &Vec<&str>) -> Vec<Application> {
 }
 
 fn genlist_system() -> Vec<Application> {
-    let list_system: Vec<Application> = Vec::new();
+    let mut list_system: Vec<Application> = Vec::new();
     let apps = Command::new("flatpak")
         .arg("list")
         .arg("--app")
         .arg("--columns=installation,origin,application")
         .output()
         .expect("failed to execute 'flatpak list --app --columns=application'");
-    println!("*** from inside genlist_system ***");
-    println!("{}", String::from_utf8_lossy(&apps.stdout));
-    // TODO: parse apps string into apps_system vector
-    // separate entries by line
-        // separate fields by whitespace
+    // println!("*** from inside genlist_system ***");
+    // println!("{}", String::from_utf8_lossy(&apps.stdout));
+    let apps_stdout = String::from_utf8_lossy(&apps.stdout);
+    for line in apps_stdout.lines() {
+        let fields: Vec<&str> = line.split_whitespace().collect();
+        if fields.len() >= 3 {
+            list_system.push(Application {
+                installation: fields[0].to_string(),
+                remote: fields[1].to_string(),
+                appid: fields[2].to_string()
+            })
+        }
+    }
     list_system
 }
 
 fn genlist_install(list_system: &Vec<Application>,
                    list_config: &Vec<Application>,) -> Vec<Application> {
     let list_install: Vec<Application> = Vec::new();
-    // for every struct in the app vec
-    for app in &list_install{
-        // if remote and appid from list_config is NOT present on system (hint: use 'flatpak list')
-            // add appid to list_install
-    }
+    // TODO: Generate list_install vector
+    // for every struct in list_config
+        // if (remote AND appid AND installation) from list_config is NOT present in list_system
+            // add relevant struct to list_install
     list_install
 }
 
