@@ -37,12 +37,10 @@ Issues:
 
 Current limitations:
 - Does not manage remotes yet. Must add/remove remotes manually.
-- Does not yet track pinned runtimes (listed with 'flatpak pin')
 
 Goals:
 - Create release binaries
 - Manage remotes/origins
-- Track pinned runtimes
 - Prompt to remove unused apps/runtimes (flatpak uninstall --unused)
 - Prompt to remove orphaned files (flatpak uninstall --delete-data)
 - Set app permissions from config file as follows:

@@ -20,6 +20,7 @@
 
 use std::env;
 use std::fs;
+//use std::io::BufRead;
 use std::process::{Command, Stdio};
 // use libflatpak::prelude::*;
 
@@ -44,7 +45,7 @@ struct Application {
 
 fn main() {
 
-    let mut list_config: Vec<Application> = genlist_config(&retrieve_config_entries());
+    let mut list_config: Vec<Application> = genlist_config(&parse_config());
     let mut list_system: Vec<Application> = genlist_system();
 
     check_system(&list_config, &mut list_system);
@@ -91,7 +92,7 @@ fn clean_system() {
     // }
 }
 
-fn retrieve_config_entries() -> Vec<String> {
+fn parse_config() -> Vec<String> {
     let username = env::var("USER").expect("failed to get username");
     let config_path = format!("/home/{}/.config/flatpak-declare/config", &username);
     let config_contents = fs::read_to_string(&config_path).expect("could not read contents of config file");
@@ -122,7 +123,7 @@ fn genlist_config(config_entries: &Vec<String>) -> Vec<Application> {
 
 fn genlist_system() -> Vec<Application> {
     let mut list_system: Vec<Application> = Vec::new();
-    //TODO: Add structs for pinned packages to 'list_system'
+    // Retrieve "flatpak list --app"
     let apps = Command::new("flatpak")
         .arg("list")
         .arg("--app")
@@ -134,6 +135,47 @@ fn genlist_system() -> Vec<Application> {
     let apps_stdout = String::from_utf8_lossy(&apps.stdout);
     for line in apps_stdout.lines() {
         let fields: Vec<&str> = line.split_whitespace().collect();
+        if fields.len() >= 3 {
+            list_system.push(Application {
+                installation: fields[0].to_string(),
+                remote: fields[1].to_string(),
+                appid: fields[2].to_string(),
+                local: None,
+            })
+        }
+    }
+    // Retrieve runtimes from "flatpak pin"
+    let pinned = Command::new("flatpak")
+        .arg("pin")
+        .output()
+        .expect("failed to execute 'flatpak list --app --columns=application'");
+    // println!("*** from inside genlist_system ***");
+    // println!("{}", String::from_utf8_lossy(&apps.stdout));
+    let pinned_stdout = String::from_utf8_lossy(&pinned.stdout);
+    // println!("***RUNTIME = {}",pinned_stdout);
+    for line in pinned_stdout.lines(){
+        let fields: Vec<&str> = line.split('/').collect();
+        // println!("***RUNTIME_ID = {}",fields[1]);
+        let runtimes = Command::new("flatpak")
+            .arg("list")
+            .arg("--runtime")
+            .arg("--columns=installation,origin,application")
+            .stdout(Stdio::piped()) // pipe to following command
+            .spawn()
+            .expect("Failed to execute `flatpak list --runtime --columns=installation,origin,application`");
+
+        let grep_output = Command::new("grep")
+            .arg(fields[1])
+            .stdin(runtimes.stdout.unwrap())
+            .output()
+            .expect("Failed to execute `grep` command");
+
+        let runtimes_filtered = String::from_utf8_lossy(&grep_output.stdout);
+        // println!("***FILTERED RUNTIMES = {}",runtimes_filtered);
+
+        let fields: Vec<&str> = runtimes_filtered.split_whitespace().collect();
+        // NOTE: Below println will cause error if 'fields' is empty
+        // println!("***PARSED RUNTIME = 0:{}, 1:{}, 2:{}",fields[0],fields[1],fields[2]);
         if fields.len() >= 3 {
             list_system.push(Application {
                 installation: fields[0].to_string(),
