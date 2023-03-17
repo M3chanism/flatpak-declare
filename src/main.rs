@@ -44,13 +44,11 @@ struct Application {
 
 fn main() {
 
-    let config_entries: Vec<String> = retrieve_config_entries();
-    let mut list_config: Vec<Application> = genlist_config(&config_entries);
+    let mut list_config: Vec<Application> = genlist_config(&retrieve_config_entries());
     let mut list_system: Vec<Application> = genlist_system();
 
     check_system(&list_config, &mut list_system);
     remove_apps(&list_system);
-
     clean_system();
 
     check_config(&mut list_config, &list_system);
