@@ -3,7 +3,7 @@
 
 use std::env;
 use std::fs;
-use std::process::Command;
+use std::process::{Command, Stdio};
 // use libflatpak::prelude::*;
 
 // NOTE: DO NOT RUN THIS INSIDE NIX SHELL. 'cargo run' as normal
@@ -104,6 +104,7 @@ fn genlist_config(config_entries: &Vec<String>) -> Vec<Application> {
 
 fn genlist_system() -> Vec<Application> {
     let mut list_system: Vec<Application> = Vec::new();
+    //TODO: Add structs for pinned packages to 'list_system'
     let apps = Command::new("flatpak")
         .arg("list")
         .arg("--app")
@@ -152,12 +153,14 @@ fn remove_apps(list_system: &Vec<Application>){
                 .arg("uninstall")
                 .arg("--noninteractive")
                 .arg(app_id)
-                .output()
-                .expect("failed to execute flatpak uninstall");
-            if remove.status.success() {
-                println!("Removed {} successfully", app_sys.appid);
-            } else {
-                eprintln!("Failed to remove {}", String::from_utf8_lossy(&remove.stderr));
+                .stdin(Stdio::inherit())
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit())
+                .status()
+                .expect("Failed to execute the command");
+
+            if !remove.success() {
+                eprintln!("Command exited with an error: {:?}", remove.code());
             }
         }
     }
@@ -192,12 +195,14 @@ fn install_apps(list_config: &Vec<Application>){
                 .arg("--noninteractive")
                 .arg(remote)
                 .arg(app_id)
-                .output()
-                .expect("failed to execute process");
-            if install.status.success() {
-                println!("Installed {} successfully", app_config.appid);
-            } else {
-                eprintln!("Failed to install {}", String::from_utf8_lossy(&install.stderr));
+                .stdin(Stdio::inherit())
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit())
+                .status()
+                .expect("Failed to execute the command");
+
+            if !install.success() {
+                eprintln!("Command exited with an error: {:?}", install.code());
             }
         }
     }
