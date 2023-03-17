@@ -31,6 +31,8 @@ fn main() {
     check_system(&list_config, &mut list_system);
     remove_apps(&list_system);
 
+    clean_system();
+
     check_config(&mut list_config, &list_system);
     install_apps(&list_config);
 
@@ -42,6 +44,33 @@ fn main() {
     for apps in list_system {
         println!("install: {}, remote: {}, appid: {}\n", apps.installation, apps.remote, apps.appid);
     }
+}
+
+fn clean_system() {
+    //TODO: Prompt user to uninstall unused runtimes before anything else executes
+    // let uninstall_unused = Command::new("flatpak")
+    //     .arg("uninstall")
+    //     .arg("--unused")
+    //     .arg("--noninteractive")
+    //     .output()
+    //     .expect("failed to execute 'flatpak uninstall --unused'");
+    // if uninstall_unused.status.success() {
+    //     println!("Removed unused packages successfully");
+    // } else {
+    //     eprintln!("Failed to remove {}", String::from_utf8_lossy(&uninstall_unused.stderr));
+    // }
+    //TODO: Prompt user to delete data before anything else executes
+    // let delete_data = Command::new("flatpak")
+    //     .arg("uninstall")
+    //     .arg("--delete-data")
+    //     .arg("--noninteractive")
+    //     .output()
+    //     .expect("failed to execute 'flatpak uninstall --delete-data'");
+    // if delete_data.status.success() {
+    //     println!("Removed orphaned package data successfully");
+    // } else {
+    //     eprintln!("Failed to remove {}", String::from_utf8_lossy(&delete_data.stderr));
+    // }
 }
 
 fn retrieve_config_entries() -> Vec<String> {
@@ -124,7 +153,7 @@ fn remove_apps(list_system: &Vec<Application>){
                 .arg("--noninteractive")
                 .arg(app_id)
                 .output()
-                .expect("failed to execute process");
+                .expect("failed to execute flatpak uninstall");
             if remove.status.success() {
                 println!("Removed {} successfully", app_sys.appid);
             } else {
