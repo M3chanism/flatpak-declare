@@ -1,10 +1,30 @@
-// #![allow(dead_code)]
-// #![allow(unused_variables)]
+/* vi:set et sw=2 sts=2 cin cino=t0,f0,(0,{s,>2s,n-s,^-s,e-s:
+ * Copyright © 2023 Justin Ramos
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Authors:
+ *       Justin Ramos <justin@worldcrafters.io>
+ */
 
 use std::env;
 use std::fs;
 use std::process::{Command, Stdio};
 // use libflatpak::prelude::*;
+
+// #![allow(dead_code)]
+// #![allow(unused_variables)]
 
 // NOTE: DO NOT RUN THIS INSIDE NIX SHELL. 'cargo run' as normal
 
