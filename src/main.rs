@@ -45,6 +45,7 @@ struct Application {
 
 fn main() {
 
+    //TODO: Make separate genlist_config_remotes function.
     let mut list_config: Vec<Application> = genlist_config(&parse_config());
     let mut list_system: Vec<Application> = genlist_system();
 
@@ -92,10 +93,12 @@ fn clean_system() {
     // }
 }
 
+//TODO: Separate this into parse_config_apps and parse_config_remotes
 fn parse_config() -> Vec<String> {
     let username = env::var("USER").expect("failed to get username");
     let config_path = format!("/home/{}/.config/flatpak-declare/config", &username);
     let config_contents = fs::read_to_string(&config_path).expect("could not read contents of config file");
+    //TODO: Use regex to parse config_contents into a string of applications and a string of remotes
     let config_entries: Vec<String> = config_contents
         .split('\n')
         .map(|field| field.trim()) // ignore whitespace!
@@ -105,6 +108,7 @@ fn parse_config() -> Vec<String> {
     config_entries
 }
 
+//TODO: Separate genlist_config into genlist_config_apps and genlist_config_remotes
 fn genlist_config(config_entries: &Vec<String>) -> Vec<Application> {
     let mut list_config = Vec::new();
     for line in config_entries {
@@ -123,6 +127,8 @@ fn genlist_config(config_entries: &Vec<String>) -> Vec<Application> {
 
 fn genlist_system() -> Vec<Application> {
     let mut list_system: Vec<Application> = Vec::new();
+
+    //TODO: Separate into function "push_apps"
     // Retrieve "flatpak list --app"
     let apps = Command::new("flatpak")
         .arg("list")
@@ -144,6 +150,7 @@ fn genlist_system() -> Vec<Application> {
             })
         }
     }
+    //TODO: Separate into function "push_pinned"
     // Retrieve runtimes from "flatpak pin"
     let pinned = Command::new("flatpak")
         .arg("pin")
